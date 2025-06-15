@@ -32,56 +32,54 @@
     <div id="token">جاري توليد الرمز...</div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6hFIqwCwOuUosWF-YdY5lxT0WBvMAkAY",
-            authDomain: "student-auth-app-f6356.firebaseapp.com",
-            projectId: "student-auth-app-f6356",
-            storageBucket: "student-auth-app-f6356.firebasestorage.app",
-            messagingSenderId: "106605387060",
-            appId: "1:106605387060:web:198505386f46b725225961"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyB6hFIqwCwOuUosWF-YdY5lxT0WBvMAkAY",
+        authDomain: "student-auth-app-f6356.firebaseapp.com",
+        projectId: "student-auth-app-f6356",
+        storageBucket: "student-auth-app-f6356.firebasestorage.app",
+        messagingSenderId: "106605387060",
+        appId: "1:106605387060:web:198505386f46b725225961"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const messaging = firebase.messaging();
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-        // تسجيل Service Worker
-        navigator.serviceWorker.register('firebase-messaging-sw.js')
-        .then((registration) => {
-            messaging.useServiceWorker(registration);
-
-            messaging.requestPermission()
-            .then(() => {
-                console.log('تم منح الإذن');
-                return messaging.getToken({
-                    vapidKey: "BLjG6W4XJ-9w3Q2Z1Y7N8C0V1B3M4K5L6P7O8I9U0H2G1F4D5S6A7Q8W9E0R1T2Y"
-                });
-            })
-            .then(token => {
-                console.log('Token:', token);
-                document.getElementById('token').innerText = token;
-                
-                const copyBtn = document.createElement('button');
-                copyBtn.textContent = 'نسخ الرمز';
-                copyBtn.onclick = () => {
-                    navigator.clipboard.writeText(token);
-                    alert('تم نسخ الرمز!');
-                };
-                document.body.appendChild(copyBtn);
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                document.getElementById('token').innerText = 'خطأ: ' + err.message;
-            });
-
-            messaging.onMessage((payload) => {
-                console.log('تم استقبال رسالة:', payload);
-                alert('رسالة جديدة: ' + payload.notification.body);
-            });
-        })
-        .catch(err => {
-            console.error('Service Worker registration failed:', err);
-            document.getElementById('token').innerText = 'خطأ في تسجيل Service Worker: ' + err.message;
+    // تسجيل Service Worker مع المسار المطلق
+    navigator.serviceWorker.register('https://moni02455.github.io/firebase-messaging-sw.js', {
+        scope: '/'
+    })
+    .then((registration) => {
+        messaging.useServiceWorker(registration);
+        
+        return messaging.requestPermission();
+    })
+    .then(() => {
+        console.log('تم منح الإذن');
+        return messaging.getToken({
+            vapidKey: "BLjG6W4XJ-9w3Q2Z1Y7N8C0V1B3M4K5L6P7O8I9U0H2G1F4D5S6A7Q8W9E0R1T2Y"
         });
-    </script>
+    })
+    .then(token => {
+        console.log('Token:', token);
+        document.getElementById('token').innerText = token;
+        
+        const copyBtn = document.createElement('button');
+        copyBtn.textContent = 'نسخ الرمز';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(token);
+            alert('تم نسخ الرمز!');
+        };
+        document.body.appendChild(copyBtn);
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        document.getElementById('token').innerText = 'خطأ: ' + err.message;
+    });
+
+    messaging.onMessage((payload) => {
+        console.log('تم استقبال رسالة:', payload);
+        alert('رسالة جديدة: ' + payload.notification.body);
+    });
+</script>
 </body>
 </html>
