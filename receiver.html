@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>مستقبل الرسائل</title>
-    <!-- أضف هذا ليدعم العربية -->
     <meta charset="utf-8">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
@@ -13,6 +12,17 @@
             padding: 20px; 
             background: #f5f5f5; 
             display: inline-block;
+            max-width: 80%;
+            margin: 20px auto;
+        }
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -22,47 +32,55 @@
     <div id="token">جاري توليد الرمز...</div>
 
     <script>
-        // استبدل هذه القيم من Firebase Console
-    const firebaseConfig = {
-        apiKey: "AIzaSyB6hFIqwCwOuUosWF-YdY5lxT0WBvMAkAY",
-        authDomain: "student-auth-app-f6356.firebaseapp.com",
-        databaseURL: "https://student-auth-app-f6356-default-rtdb.firebaseio.com",
-        projectId: "student-auth-app-f6356",
-        storageBucket: "student-auth-app-f6356.firebasestorage.app",
-        messagingSenderId: "106605387060",
-        appId: "1:106605387060:web:198505386f46b725225961",
-        measurementId: "G-BBXBBVP96N"
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6hFIqwCwOuUosWF-YdY5lxT0WBvMAkAY",
+            authDomain: "student-auth-app-f6356.firebaseapp.com",
+            projectId: "student-auth-app-f6356",
+            storageBucket: "student-auth-app-f6356.firebasestorage.app",
+            messagingSenderId: "106605387060",
+            appId: "1:106605387060:web:198505386f46b725225961"
         };
 
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
 
-        messaging.requestPermission()
-        .then(() => {
-            console.log('تم منح الإذن');
-            return messaging.getToken();
-        })
-        .then(token => {
-            console.log('Token:', token);
-            document.getElementById('token').innerText = token;
-            
-            // يمكنك إضافة زر نسخ تلقائي
-            const copyBtn = document.createElement('button');
-            copyBtn.textContent = 'نسخ الرمز';
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(token);
-                alert('تم نسخ الرمز!');
-            };
-            document.body.appendChild(copyBtn);
+        // تسجيل Service Worker
+        navigator.serviceWorker.register('firebase-messaging-sw.js')
+        .then((registration) => {
+            messaging.useServiceWorker(registration);
+
+            messaging.requestPermission()
+            .then(() => {
+                console.log('تم منح الإذن');
+                return messaging.getToken({
+                    vapidKey: "BLjG6W4XJ-9w3Q2Z1Y7N8C0V1B3M4K5L6P7O8I9U0H2G1F4D5S6A7Q8W9E0R1T2Y"
+                });
+            })
+            .then(token => {
+                console.log('Token:', token);
+                document.getElementById('token').innerText = token;
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = 'نسخ الرمز';
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(token);
+                    alert('تم نسخ الرمز!');
+                };
+                document.body.appendChild(copyBtn);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                document.getElementById('token').innerText = 'خطأ: ' + err.message;
+            });
+
+            messaging.onMessage((payload) => {
+                console.log('تم استقبال رسالة:', payload);
+                alert('رسالة جديدة: ' + payload.notification.body);
+            });
         })
         .catch(err => {
-            console.error('Error:', err);
-            document.getElementById('token').innerText = 'خطأ: ' + err.message;
-        });
-
-        messaging.onMessage((payload) => {
-            console.log('تم استقبال رسالة:', payload);
-            alert('رسالة جديدة: ' + payload.notification.body);
+            console.error('Service Worker registration failed:', err);
+            document.getElementById('token').innerText = 'خطأ في تسجيل Service Worker: ' + err.message;
         });
     </script>
 </body>
